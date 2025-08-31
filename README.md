@@ -278,17 +278,11 @@ curl -X POST http://localhost:8080/api/riders/123/payment/initiate \
 - Write clear commit messages and add tests where applicable.
 - Follow standard Java code style; keep controllers thin and use services.
 
-## License
-
-- Specify your license here (e.g., MIT). Example MIT header:
-  - Copyright (c) 2025
-  - Permission is hereby granted, free of charge, to any person obtaining a copy of this software...
-- Replace this section with your chosen license file and text.
 
 ## Contact
 
-- Project Maintainer: [Your Name]
-- Email: [your.email@example.com]
+- Project Maintainer: Aditya Chincholkar
+- Email: adityachincholkar39@gmail.com
 - Issues: Please open a GitHub issue in this repository.
 
 ---
