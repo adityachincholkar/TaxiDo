@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Uber Clone WebSocket Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        input[type="text"] { width: 360px; }
+        #messages { max-width: 900px; border: 1px solid #ccc; padding: 10px; min-height: 100px; max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket STOMP Test Client</h1>
+
+    <div>
+        <label for="backendUrl"><b>Backend URL</b> (Spring app base):</label>
+        <input type="text" id="backendUrl" size="50" value="http://localhost:8080" />
+    </div>
+    <br/>
+
+    <div>
+        <label for="jwtToken"><b>JWT Token (Login as Driver):</b></label>
+        <input type="text" id="jwtToken" size="100" placeholder="Paste your JWT here">
+    </div>
+    <br/>
+
+    <div>
+        <button id="connectBtn" onclick="connect()">Connect</button>
+        <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+    </div>
+    <br/>
+
+    <div>
+        <label for="lat">Latitude:</label>
+        <input type="text" id="lat" value="21.1458">
+        <label for="lon">Longitude:</label>
+        <input type="text" id="lon" value="79.0882">
+        <button id="sendBtn" onclick="sendLocation()" disabled>Send Location</button>
+    </div>
+    <br/>
+
+    <h3>Log:</h3>
+    <div id="messages"></div>
+
+    <script type="text/javascript">
+        let stompClient = null;
+
+        function setConnected(connected) {
+            document.getElementById('connectBtn').disabled = connected;
+            document.getElementById('disconnectBtn').disabled = !connected;
+            document.getElementById('sendBtn').disabled = !connected;
+        }
+
+        function connect() {
+            const token = document.getElementById('jwtToken').value.trim();
+            if (!token) {
+                alert('Please provide a JWT token.');
+                return;
+            }
+
+            const baseUrl = document.getElementById('backendUrl').value.trim().replace(/\/+$/, '');
+            const wsEndpoint = baseUrl + '/ws';
+
+            log('Connecting to: ' + wsEndpoint);
+
+            const socket = new SockJS(wsEndpoint);
+            stompClient = Stomp.over(socket);
+            stompClient.debug = function () {}; // Suppress console logs from the library
+
+            const headers = {
+                Authorization: 'Bearer ' + token
+            };
+
+            stompClient.connect(headers, function (frame) {
+                setConnected(true);
+                log('Connected: ' + frame);
+
+                const topic = '/topic/driver/location'; // This now matches the controller
+                stompClient.subscribe(topic, function (message) {
+                    log('Received [' + topic + ']: ' + message.body);
+                });
+                log('Successfully subscribed to ' + topic);
+
+            }, function (error) {
+                log('STOMP error: ' + error);
+                setConnected(false);
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect(() => {
+                    log('Disconnected');
+                    setConnected(false);
+                });
+            } else {
+                setConnected(false);
+                log('Disconnected');
+            }x
+        }
+
+        function sendLocation() {
+            if (!stompClient || !stompClient.connected) {
+                alert('Not connected');
+                return;
+            }
+
+            const latitude = document.getElementById('lat').value;
+            const longitude = document.getElementById('lon').value;
+
+            const locationData = {
+                latitude: latitude,
+                longitude: longitude
+            };
+
+            const destination = '/app/location';
+            stompClient.send(destination, {}, JSON.stringify(locationData));
+            log('Sent to ' + destination + ': ' + JSON.stringify(locationData));
+        }
+
+        function log(message) {
+            console.log(message);
+            const p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.appendChild(document.createTextNode(message));
+            document.getElementById('messages').appendChild(p);
+        }
+    </script>
+</body>
+</html> 
