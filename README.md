@@ -1,4 +1,4 @@
-# UrbanGo — Real-time Ride‑Sharing Dispatch System
+# TaxiDo — Real-time Ride‑Sharing Dispatch System
 
 A full-stack ride-hailing application with a Spring Boot backend and a simple HTML-based frontend for testing Razorpay payments and real-time WebSocket messaging.
 
